@@ -391,6 +391,12 @@
       padding: 12px 16px; border-radius: 8px;
     }
     .form-success.show { display: block; }
+    .form-error {
+      display: none; font-size: 14px; color: #A33;
+      background: #FBEAEA; border: 1px solid var(--border);
+      padding: 12px 16px; border-radius: 8px;
+    }
+    .form-error.show { display: block; }
 
     .contact-side {
       background: var(--white); border: 1px solid var(--border);
@@ -797,7 +803,10 @@
 
     <div class="contact-grid fu">
 
-      <form class="contact-form" id="contactForm">
+      <form class="contact-form" id="contactForm" action="https://formsubmit.co/fw@sauzelabs.com" method="POST">
+        <input type="hidden" name="_subject" value="New inquiry from Sauze Labs website">
+        <input type="hidden" name="_template" value="table">
+        <input type="text" name="_honey" style="display:none" tabindex="-1" autocomplete="off">
         <div class="form-row">
           <div class="field">
             <label for="fullName">Full Name</label>
@@ -846,12 +855,13 @@
 
         <button type="submit" class="btn btn-p form-submit">Submit Inquiry &amp; Connect with Our Team</button>
         <div class="form-success" id="formSuccess">Thank you &mdash; your inquiry has been received. Our team will reach out within 24 business hours.</div>
+        <div class="form-error" id="formError">Something went wrong sending your inquiry. Please email us directly at <a href="mailto:fw@sauzelabs.com" style="color:#A33;text-decoration:underline;">fw@sauzelabs.com</a>.</div>
       </form>
 
       <div class="contact-side">
         <div class="side-item">
           <h5>Direct Email</h5>
-          <a href="mailto:info@sauzelabs.com">info@sauzelabs.com</a>
+          <a href="mailto:fw@sauzelabs.com">fw@sauzelabs.com</a>
         </div>
         <div class="side-item">
           <h5>Locations</h5>
@@ -931,11 +941,23 @@
     document.querySelector('[data-case="'+idx+'"]').classList.add('active');
   }
 
-  // Contact form (front-end only — no backend wired up)
+  // Contact form — submits to FormSubmit.co, which emails fw@sauzelabs.com
   document.getElementById('contactForm').addEventListener('submit', function(e) {
     e.preventDefault();
-    document.getElementById('formSuccess').classList.add('show');
-    this.reset();
+    const form = this;
+    const successEl = document.getElementById('formSuccess');
+    const errorEl = document.getElementById('formError');
+    successEl.classList.remove('show');
+    errorEl.classList.remove('show');
+
+    fetch('https://formsubmit.co/ajax/fw@sauzelabs.com', {
+      method: 'POST',
+      headers: { 'Accept': 'application/json' },
+      body: new FormData(form)
+    })
+      .then(res => { if (!res.ok) throw new Error('Request failed'); return res.json(); })
+      .then(() => { successEl.classList.add('show'); form.reset(); })
+      .catch(() => { errorEl.classList.add('show'); });
   });
 
   // Scroll fade-in
